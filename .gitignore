@@ -1,0 +1,24 @@
+cat <<EOF > .gitignore
+# Ignore Binaries (CRITICAL for marks)
+server_a1
+server_a2
+server_a3
+client_a1
+*.o
+*.out
+
+# Ignore Python Cache
+__pycache__/
+*.pyc
+
+# Ignore temporary perf files
+perf_current.txt
+perf_demo.txt
+
+# Ignore Zips (The zip goes to Classroom, not inside the repo)
+*.zip
+
+# Ignore Image files (Plots go in Report PDF only, not in repo)
+*.png
+*.jpg
+EOF
