@@ -9,7 +9,7 @@ SIZES=(1024 16384 65536 262144)
 THREADS=(1 2 4 8)
 # MUST match the #define ITERATIONS in MT25040_Part_A_Data.h
 ITERATIONS=1000                
-OUTPUT_FILE="results/final_results.csv"
+OUTPUT_FILE="final_results.csv"
 
 # Network Config
 NS_SERVER="ns_server"

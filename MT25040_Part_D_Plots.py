@@ -8,121 +8,108 @@ SYSTEM_CONFIG = "System: 4 vCPU, Ubuntu 22.04 LTS"
 ITERATIONS = 1000  # Used for Cycles/Byte calculation
 
 # ==========================================
-# HARDCODED DATA (From your latest CSV)
+# HARDCODED DATA (From your Corrected A2 CSV)
 # ==========================================
-# Implementations: a1 (Baseline), a2 (One-Copy), a3 (Zero-Copy)
-# Sizes: 1024, 16384, 65536, 262144
-# Threads: 1, 2, 4, 8
-
 sizes = [1024, 16384, 65536, 262144]
 threads = [1, 2, 4, 8]
 
-# Data organized by [Thread Count Index][Implementation] -> Array of values for sizes
-# T1 (Index 0), T2 (Index 1), T4 (Index 2), T8 (Index 3)
-
 # --- THROUGHPUT (Gbps) ---
 tp_data = {
-    1: { # Threads
-        'a1': [0.13, 1.91, 6.46, 10.28],
-        'a2': [0.16, 2.63, 8.44, 11.08],
-        'a3': [0.17, 2.34, 7.08, 13.96]
+    1: {
+        'a1': [0.21, 4.71, 16.94, 23.51],
+        'a2': [0.35, 5.07, 17.23, 24.70],
+        'a3': [0.34, 4.52, 13.41, 30.20] # A3 Wins at 262K (1 Thread)
     },
     2: {
-        'a1': [0.34, 4.77, 16.04, 19.57],
-        'a2': [0.27, 4.71, 16.77, 20.93],
-        'a3': [0.34, 3.27, 12.99, 27.05]
+        'a1': [0.76, 9.94, 33.08, 41.27],
+        'a2': [0.70, 9.43, 30.45, 42.76],
+        'a3': [0.52, 8.50, 26.76, 57.60] # A3 Wins Huge at 262K (2 Threads)
     },
     4: {
-        'a1': [0.71, 8.55, 28.41, 32.66],
-        'a2': [0.65, 10.01, 29.49, 38.85],
-        'a3': [0.66, 7.82, 26.71, 50.86]
+        'a1': [1.44, 19.11, 55.77, 62.85],
+        'a2': [1.07, 19.62, 59.65, 73.02], # A2 Wins at 4 Threads
+        'a3': [1.25, 17.67, 49.55, 68.13]
     },
     8: {
-        'a1': [1.32, 16.61, 3.75, 51.01],
-        'a2': [0.06, 14.79, 41.99, 51.40],
-        'a3': [1.20, 0.94, 36.12, 78.40]
+        'a1': [0.06, 0.99, 3.85, 14.54],
+        'a2': [0.06, 0.98, 3.86, 15.29],
+        'a3': [0.06, 1.00, 3.94, 14.90]
     }
 }
 
 # --- LATENCY (us) ---
-# Organized by [Message Size Index][Implementation] -> Array of values for threads
-# S1024 (Index 0), S16384 (1), S65536 (2), S262144 (3)
 lat_data = {
     1024: {
-        'a1': [62.57, 24.24, 11.51, 6.22],
-        'a2': [50.81, 30.81, 12.56, 133.94],
-        'a3': [48.37, 23.99, 12.33, 6.84]
+        'a1': [39.20, 10.79, 5.69, 130.40],
+        'a2': [23.39, 11.72, 7.63, 133.62],
+        'a3': [24.10, 15.66, 6.56, 134.25]
     },
     16384: {
-        'a1': [68.77, 27.48, 15.34, 7.89],
-        'a2': [49.74, 27.81, 13.09, 8.86],
-        'a3': [55.93, 40.04, 16.76, 139.63]
+        'a1': [27.80, 13.19, 6.86, 132.62],
+        'a2': [25.84, 13.90, 6.68, 133.61],
+        'a3': [28.97, 15.42, 7.42, 131.29]
     },
     65536: {
-        'a1': [81.17, 32.69, 18.46, 139.87],
-        'a2': [62.15, 31.27, 17.78, 12.49],
-        'a3': [74.04, 40.37, 19.63, 14.52]
+        'a1': [30.95, 15.85, 9.40, 136.26],
+        'a2': [30.42, 17.22, 8.79, 135.85],
+        'a3': [39.11, 19.59, 10.58, 133.20]
     },
     262144: {
-        'a1': [203.91, 107.15, 64.21, 41.11],
-        'a2': [189.34, 100.22, 53.98, 40.80],
-        'a3': [150.19, 77.53, 41.23, 26.75]
+        'a1': [89.22, 50.81, 33.37, 144.26],
+        'a2': [84.90, 49.05, 28.72, 137.18],
+        'a3': [69.45, 36.41, 30.78, 140.72]
     }
 }
 
 # --- LLC MISSES ---
-# Organized by Threads (like Throughput)
 llc_data = {
     1: {
-        'a1': [102708, 352224, 990954, 3063599],
-        'a2': [104083, 357289, 1078827, 3050255],
-        'a3': [140390, 378699, 1646348, 6810335]
+        'a1': [110955, 338115, 936686, 2608263],
+        'a2': [97889, 361914, 914522, 2453045],
+        'a3': [140703, 411379, 1467410, 6974361]
     },
     2: {
-        'a1': [198703, 724016, 2040485, 6717545],
-        'a2': [178464, 724508, 2062220, 6287349],
-        'a3': [263916, 802332, 3153718, 13019331]
+        'a1': [167237, 672459, 1811047, 5423328],
+        'a2': [184277, 668208, 1849900, 5234961],
+        'a3': [305679, 792303, 3238020, 13521758]
     },
     4: {
-        'a1': [348766, 1388185, 4048625, 12351710],
-        'a2': [446288, 1310796, 3866667, 12672143],
-        'a3': [500607, 1883686, 6214807, 24660621]
+        'a1': [363550, 1251704, 3665781, 11065096],
+        'a2': [420949, 1291015, 3767159, 12066337],
+        'a3': [654065, 1740185, 6789425, 14776614]
     },
     8: {
-        'a1': [689819, 2409369, 8154289, 22932225],
-        'a2': [858142, 2757072, 8239809, 24677230],
-        'a3': [1569044, 4320658, 12317849, 44189336]
+        'a1': [706874, 2621232, 7179774, 22167339],
+        'a2': [864242, 2657295, 7283992, 23838955],
+        'a3': [1388614, 3740147, 14890193, 47794441]
     }
 }
 
-# --- CYCLES PER BYTE ---
-# Calculated from Raw Cycles in CSV
-# Formula: Cycles / (Size * Threads * ITERATIONS)
-# Using hardcoded cycle counts to derive this
+# --- CYCLES PER BYTE (Efficiency) ---
+# Derived from Cycles column in your CSV
 cycles_raw = {
-    1: { # Threads
-        'a1': [26014896, 39582137, 64156955, 192775113],
-        'a2': [33030240, 36906354, 60541305, 124841792],
-        'a3': [33796769, 50460855, 90962146, 249524109]
+    1: {
+        'a1': [25755341, 41914078, 63140335, 201708680],
+        'a2': [26710240, 42837994, 62470701, 135644694],
+        'a3': [33037015, 53298991, 102038865, 232133973]
     },
     2: {
-        'a1': [48751448, 82912974, 132468767, 652749702],
-        'a2': [54570409, 85758224, 121481646, 288057741],
-        'a3': [68218790, 105014358, 195234529, 471046937]
+        'a1': [49836103, 76370086, 128915491, 508144938],
+        'a2': [53674589, 85511395, 137605613, 405228751],
+        'a3': [81251025, 104825105, 190023761, 462479789]
     },
     4: {
-        'a1': [107696451, 180752828, 294310693, 1109154113],
-        'a2': [112531222, 158875017, 260647622, 957348440],
-        'a3': [133228783, 245949803, 357962899, 923829231]
+        'a1': [106112583, 172570080, 303961445, 1485682365],
+        'a2': [134681206, 174941434, 291559501, 1375434872],
+        'a3': [144869306, 216696966, 410728150, 574356059]
     },
     8: {
-        'a1': [251971002, 364424668, 609678773, 3377742287],
-        'a2': [251493435, 446461360, 687860786, 3666798786],
-        'a3': [358624069, 553340088, 857228833, 1988567149]
+        'a1': [239427519, 382379706, 595073956, 3976240956],
+        'a2': [256950712, 402947686, 633370052, 5682966757],
+        'a3': [338437201, 500327164, 896259447, 1932207687]
     }
 }
 
-# Helper to calculate Cycles/Byte
 def get_cpb(thread_count, impl):
     raw = cycles_raw[thread_count][impl]
     cpb = []
@@ -144,74 +131,58 @@ def style_plot(ax, title, xlabel, ylabel, logx=False, logy=False):
     ax.legend(fontsize=8)
 
 # ==========================================
-# 1. THROUGHPUT vs MESSAGE SIZE (4 Subplots)
+# GENERATE 4 IMAGES
 # ==========================================
+
+# 1. THROUGHPUT
 fig, axs = plt.subplots(2, 2, figsize=(12, 10))
 fig.suptitle(f'Throughput vs Message Size ({SYSTEM_CONFIG})', fontsize=14)
-
 for i, t in enumerate(threads):
     ax = axs[i//2, i%2]
     ax.plot(sizes, tp_data[t]['a1'], 'o-', label='A1 (Baseline)')
     ax.plot(sizes, tp_data[t]['a2'], 's-', label='A2 (One-Copy)')
     ax.plot(sizes, tp_data[t]['a3'], '^-', label='A3 (Zero-Copy)')
-    style_plot(ax, f'Threads: {t}', 'Message Size (Bytes)', 'Throughput (Gbps)', logx=True)
-
+    style_plot(ax, f'Threads: {t}', 'Message Size', 'Throughput (Gbps)', logx=True)
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.savefig('1_throughput_analysis.png')
-print("Generated 1_throughput_analysis.png")
 
-# ==========================================
-# 2. LATENCY vs THREAD COUNT (4 Subplots)
-# ==========================================
+# 2. LATENCY
 fig, axs = plt.subplots(2, 2, figsize=(12, 10))
 fig.suptitle(f'Latency vs Thread Count ({SYSTEM_CONFIG})', fontsize=14)
-
 for i, s in enumerate(sizes):
     ax = axs[i//2, i%2]
     ax.plot(threads, lat_data[s]['a1'], 'o-', label='A1 (Baseline)')
     ax.plot(threads, lat_data[s]['a2'], 's-', label='A2 (One-Copy)')
     ax.plot(threads, lat_data[s]['a3'], '^-', label='A3 (Zero-Copy)')
-    style_plot(ax, f'Message Size: {s}', 'Thread Count', 'Latency (us)')
-
+    style_plot(ax, f'Size: {s}', 'Threads', 'Latency (us)')
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.savefig('2_latency_analysis.png')
-print("Generated 2_latency_analysis.png")
 
-# ==========================================
-# 3. LLC MISSES vs MESSAGE SIZE (4 Subplots)
-# ==========================================
+# 3. LLC MISSES
 fig, axs = plt.subplots(2, 2, figsize=(12, 10))
-fig.suptitle(f'LLC Cache Misses vs Message Size ({SYSTEM_CONFIG})', fontsize=14)
-
+fig.suptitle(f'LLC Misses vs Message Size ({SYSTEM_CONFIG})', fontsize=14)
 for i, t in enumerate(threads):
     ax = axs[i//2, i%2]
     ax.plot(sizes, llc_data[t]['a1'], 'o-', label='A1 (Baseline)')
     ax.plot(sizes, llc_data[t]['a2'], 's-', label='A2 (One-Copy)')
     ax.plot(sizes, llc_data[t]['a3'], '^-', label='A3 (Zero-Copy)')
-    style_plot(ax, f'Threads: {t}', 'Message Size (Bytes)', 'LLC Misses', logx=True, logy=True)
-
+    style_plot(ax, f'Threads: {t}', 'Message Size', 'LLC Misses', logx=True, logy=True)
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.savefig('3_cache_misses_analysis.png')
-print("Generated 3_cache_misses_analysis.png")
 
-# ==========================================
-# 4. CPU CYCLES/BYTE vs MESSAGE SIZE (4 Subplots)
-# ==========================================
+# 4. CPU EFFICIENCY
 fig, axs = plt.subplots(2, 2, figsize=(12, 10))
-fig.suptitle(f'CPU Efficiency (Cycles/Byte) vs Message Size ({SYSTEM_CONFIG})', fontsize=14)
-
+fig.suptitle(f'CPU Efficiency vs Message Size ({SYSTEM_CONFIG})', fontsize=14)
 for i, t in enumerate(threads):
     ax = axs[i//2, i%2]
-    # Calculate CPB dynamically
     cpb_a1 = get_cpb(t, 'a1')
     cpb_a2 = get_cpb(t, 'a2')
     cpb_a3 = get_cpb(t, 'a3')
-    
     ax.plot(sizes, cpb_a1, 'o-', label='A1 (Baseline)')
     ax.plot(sizes, cpb_a2, 's-', label='A2 (One-Copy)')
     ax.plot(sizes, cpb_a3, '^-', label='A3 (Zero-Copy)')
-    style_plot(ax, f'Threads: {t}', 'Message Size (Bytes)', 'Cycles / Byte', logx=True)
-
+    style_plot(ax, f'Threads: {t}', 'Message Size', 'Cycles / Byte', logx=True)
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.savefig('4_cpu_efficiency_analysis.png')
-print("Generated 4_cpu_efficiency_analysis.png")
+
+print("All 4 Analysis Images Generated.")

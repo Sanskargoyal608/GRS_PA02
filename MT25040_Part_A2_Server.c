@@ -1,9 +1,10 @@
-#include "MT25040_Part_A_Data.h"
+#include "MT25040_Part_A_Data.h" // Updated header name
 #include <pthread.h>
 #include <sys/socket.h>
-#include <sys/uio.h> // Required for writev
+// #include <sys/uio.h> // writev not needed anymore
 
-int g_message_size = 1024; // Global size
+// Global size variable
+int g_message_size = 1024; 
 
 void *handle_client(void *socket_desc);
 
@@ -48,7 +49,6 @@ int main(int argc , char *argv[]) {
     printf("server listening on %d\n",PORT);
     fflush(stdout);
 
-    // 2. Fixed Parentheses
     while((new_socket = accept(server_id, (struct sockaddr *)&address, (socklen_t*)&addrlen))) {
         new_sock = malloc(sizeof(int));
         *new_sock = new_socket;
@@ -66,21 +66,27 @@ void *handle_client(void *socket_desc) {
     int sock = *(int*)socket_desc;
     free(socket_desc);
 
-    // 3. Use Global Size
     int message_size = g_message_size;
     message msg;
-    generate_msg(&msg,message_size);
+    generate_msg(&msg, message_size);
 
     struct iovec iov[8];
     int field_size = message_size / 8;
 
+    // "Pre-registering" the buffer by setting up the iovec pointers
+    // This points directly to the existing memory, avoiding the user-space copy (memcpy)
     for(int i = 0; i < 8; i++) {
         iov[i].iov_base = msg.text[i];
         iov[i].iov_len = field_size;
     }
 
+    // Setup msghdr for sendmsg()
+    struct msghdr socket_message = {0};
+    socket_message.msg_iov = iov;
+    socket_message.msg_iovlen = 8;
+
     for(int i = 0; i < ITERATIONS; i++) {
-        writev(sock, iov, 8); 
+        sendmsg(sock, &socket_message, 0);
     }
 
     free_msg(&msg);
