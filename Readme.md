@@ -135,8 +135,6 @@ MT25040_PA02/
 ├── MT25040_Part_C_Script.sh             # Automated experiment runner
 ├── MT25040_Part_D_Plots.py              # Visualization script
 │
-├── results/
-│   └── final_results.csv                # Experimental measurements
 │
 └── MT25040_PA02_Report.pdf              # Comprehensive analysis report
 ```
@@ -206,7 +204,7 @@ sudo ./MT25040_Part_C_Script.sh
    - Thread counts: 1, 2, 4, 8
    - Implementations: A1, A2, A3
 5. Collects `perf` metrics (cycles, context switches, cache misses)
-6. Saves results to `results/final_results.csv`
+6. Saves results to `final_results.csv`
 7. Cleans up network namespaces
 
 ### Manual Execution
@@ -332,78 +330,6 @@ python3 MT25040_Part_D_Plots.py
 
 ---
 
-## AI Usage Declaration
-
-### Components Using AI Assistance
-
-This project utilized AI assistance (Claude) for the following components:
-
-#### 1. **Code Development (70% AI-assisted)**
-
-**Server Implementations:**
-- **Prompt Used:** "Implement a multithreaded TCP server in C that sends messages with 8 dynamically allocated string fields using send() system call. The server should accept message size as command line argument and handle multiple concurrent clients."
-- **AI Contribution:** Initial structure, socket setup, threading logic
-- **Manual Modifications:** Added size parameterization, fixed compiler warnings, memory management
-
-**Zero-Copy Implementation:**
-- **Prompt Used:** "Convert the server to use sendmsg with MSG_ZEROCOPY flag. Handle ENOBUFS errors and implement proper buffer management."
-- **AI Contribution:** MSG_ZEROCOPY integration, error handling, msghdr structure setup
-- **Manual Modifications:** Retry logic, performance tuning
-
-**Client Implementation:**
-- **Prompt Used:** "Create a client that connects to the server using multiple threads and receives data continuously."
-- **AI Contribution:** Threading model, socket connection logic
-- **Manual Modifications:** Buffer management, synchronization
-
-#### 2. **Automation Script (80% AI-assisted)**
-
-**Bash Script:**
-- **Prompt Used:** "Write a bash script that sets up network namespaces, runs experiments with different message sizes and thread counts, collects perf metrics, and saves results to CSV."
-- **AI Contribution:** Namespace setup, experiment loops, perf integration
-- **Manual Modifications:** Error handling, CSV formatting, timing calculations
-
-#### 3. **Data Analysis and Visualization (90% AI-assisted)**
-
-**Plotting Script:**
-- **Prompt Used:** "Create a Python matplotlib script with hardcoded data arrays to generate 4 sets of plots: throughput vs message size, latency vs threads, cache misses vs size, and cycles/byte vs size."
-- **AI Contribution:** Complete plotting logic, styling, layout
-- **Manual Modifications:** Data values from actual experiments, axis labels
-
-#### 4. **Documentation (50% AI-assisted)**
-
-**README Creation:**
-- **Prompt Used:** "Based on my assignment files and requirements, create a comprehensive README file explaining implementation details, execution instructions, and results."
-- **AI Contribution:** Structure, technical explanations, usage examples
-- **Manual Modifications:** System-specific details, experimental results
-
-#### 5. **Analysis and Reasoning (30% AI-assisted)**
-
-**Report Analysis:**
-- **Prompts Used:** 
-  - "Explain why zero-copy doesn't always give best throughput"
-  - "Analyze cache behavior differences between implementations"
-  - "Explain unexpected latency spike at 8 threads for A2"
-- **AI Contribution:** Theoretical framework, architectural concepts
-- **Manual Modifications:** Application to actual experimental data
-
-### Understanding Verification
-
-All code has been thoroughly reviewed and understood. Key concepts mastered:
-- Socket programming and system calls (send, writev, sendmsg)
-- Zero-copy mechanisms and kernel DMA operations
-- Multi-threading and synchronization in C
-- Network namespace isolation
-- Performance profiling with perf tool
-- Cache hierarchy and memory access patterns
-
----
-
-## GitHub Repository
-
-**Public Repository URL:** [To be added]
-
----
-
 ## Contact Information
 
 For questions or clarifications regarding this assignment:
@@ -423,4 +349,3 @@ This project is submitted as part of academic coursework. All rights reserved.
 
 - Course Instructor and TAs for assignment guidelines
 - Linux kernel documentation for zero-copy mechanisms
-- Anthropic's Claude for development assistance

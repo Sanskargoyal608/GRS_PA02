@@ -4,11 +4,11 @@ import numpy as np
 # ==========================================
 # CONFIGURATION
 # ==========================================
-SYSTEM_CONFIG = "System: 4 vCPU, Ubuntu 22.04 LTS"
-ITERATIONS = 1000  # Used for Cycles/Byte calculation
+SYSTEM_CONFIG = "System: 16 vCPU, Fixed Backlog"
+ITERATIONS = 1000
 
 # ==========================================
-# HARDCODED DATA (From your Corrected A2 CSV)
+# HARDCODED DATA (FULL DATASET FOR ALL GRAPHS)
 # ==========================================
 sizes = [1024, 16384, 65536, 262144]
 threads = [1, 2, 4, 8]
@@ -16,107 +16,115 @@ threads = [1, 2, 4, 8]
 # --- THROUGHPUT (Gbps) ---
 tp_data = {
     1: {
-        'a1': [0.21, 4.71, 16.94, 23.51],
-        'a2': [0.35, 5.07, 17.23, 24.70],
-        'a3': [0.34, 4.52, 13.41, 30.20] # A3 Wins at 262K (1 Thread)
+        'a1': [0.19, 5.09, 18.06, 21.87],
+        'a2': [0.30, 4.88, 17.06, 35.54],
+        'a3': [0.32, 4.68, 14.37, 30.87]
     },
     2: {
-        'a1': [0.76, 9.94, 33.08, 41.27],
-        'a2': [0.70, 9.43, 30.45, 42.76],
-        'a3': [0.52, 8.50, 26.76, 57.60] # A3 Wins Huge at 262K (2 Threads)
+        'a1': [0.67, 10.22, 32.92, 35.34],
+        'a2': [0.69, 8.84, 35.08, 45.22],
+        'a3': [0.57, 8.75, 19.02, 56.81]
     },
     4: {
-        'a1': [1.44, 19.11, 55.77, 62.85],
-        'a2': [1.07, 19.62, 59.65, 73.02], # A2 Wins at 4 Threads
-        'a3': [1.25, 17.67, 49.55, 68.13]
+        'a1': [1.38, 19.30, 54.13, 59.17],
+        'a2': [0.79, 18.93, 65.31, 48.56],
+        'a3': [1.16, 17.98, 46.29, 57.37]
     },
     8: {
-        'a1': [0.06, 0.99, 3.85, 14.54],
-        'a2': [0.06, 0.98, 3.86, 15.29],
-        'a3': [0.06, 1.00, 3.94, 14.90]
+        'a1': [2.66, 22.40, 96.30, 61.22],
+        'a2': [2.47, 32.46, 104.17, 53.34],
+        'a3': [1.21, 30.28, 70.37, 54.07]
     }
 }
 
 # --- LATENCY (us) ---
 lat_data = {
     1024: {
-        'a1': [39.20, 10.79, 5.69, 130.40],
-        'a2': [23.39, 11.72, 7.63, 133.62],
-        'a3': [24.10, 15.66, 6.56, 134.25]
+        'a1': [42.02, 12.06, 5.91, 3.07],
+        'a2': [26.57, 11.83, 10.36, 3.30],
+        'a3': [24.99, 14.32, 7.05, 6.76]
     },
     16384: {
-        'a1': [27.80, 13.19, 6.86, 132.62],
-        'a2': [25.84, 13.90, 6.68, 133.61],
-        'a3': [28.97, 15.42, 7.42, 131.29]
+        'a1': [25.74, 12.82, 6.78, 5.85],
+        'a2': [26.83, 14.82, 6.92, 4.03],
+        'a3': [27.97, 14.97, 7.28, 4.32]
     },
     65536: {
-        'a1': [30.95, 15.85, 9.40, 136.26],
-        'a2': [30.42, 17.22, 8.79, 135.85],
-        'a3': [39.11, 19.59, 10.58, 133.20]
+        'a1': [29.02, 15.92, 9.68, 5.44],
+        'a2': [30.72, 14.94, 8.02, 5.03],
+        'a3': [36.45, 27.55, 11.32, 7.45]
     },
     262144: {
-        'a1': [89.22, 50.81, 33.37, 144.26],
-        'a2': [84.90, 49.05, 28.72, 137.18],
-        'a3': [69.45, 36.41, 30.78, 140.72]
+        'a1': [95.84, 59.32, 35.43, 34.25],
+        'a2': [58.99, 46.37, 43.18, 39.31],
+        'a3': [67.92, 36.91, 36.55, 38.78]
     }
 }
 
-# --- LLC MISSES ---
+# --- LLC MISSES (Raw Count - All Threads) ---
 llc_data = {
     1: {
-        'a1': [110955, 338115, 936686, 2608263],
-        'a2': [97889, 361914, 914522, 2453045],
-        'a3': [140703, 411379, 1467410, 6974361]
+        'a1': [82378, 386032, 970920, 2538692],
+        'a2': [117422, 377525, 980784, 3556353],
+        'a3': [142350, 391910, 1655819, 6970171]
     },
     2: {
-        'a1': [167237, 672459, 1811047, 5423328],
-        'a2': [184277, 668208, 1849900, 5234961],
-        'a3': [305679, 792303, 3238020, 13521758]
+        'a1': [179421, 696834, 1924662, 5515685],
+        'a2': [197559, 715908, 1848736, 6353735],
+        'a3': [381736, 868812, 3098450, 12747157]
     },
     4: {
-        'a1': [363550, 1251704, 3665781, 11065096],
-        'a2': [420949, 1291015, 3767159, 12066337],
-        'a3': [654065, 1740185, 6789425, 14776614]
+        'a1': [361521, 1316159, 3598334, 10715723],
+        'a2': [415278, 1380425, 3648373, 11153499],
+        'a3': [782245, 1668163, 6648452, 14404180]
     },
     8: {
-        'a1': [706874, 2621232, 7179774, 22167339],
-        'a2': [864242, 2657295, 7283992, 23838955],
-        'a3': [1388614, 3740147, 14890193, 47794441]
+        'a1': [878549, 2311479, 7172318, 24770389],
+        'a2': [909561, 2235728, 7503929, 23470600],
+        'a3': [2272925, 4203586, 12388609, 17327901]
     }
 }
 
-# --- CYCLES PER BYTE (Efficiency) ---
-# Derived from Cycles column in your CSV
-cycles_raw = {
+# --- RAW CYCLES (For CPU Efficiency Calculation) ---
+cycles_data = {
     1: {
-        'a1': [25755341, 41914078, 63140335, 201708680],
-        'a2': [26710240, 42837994, 62470701, 135644694],
-        'a3': [33037015, 53298991, 102038865, 232133973]
+        'a1': [24181322, 42153700, 55665619, 200473496],
+        'a2': [27545335, 36679883, 60328528, 171972767],
+        'a3': [33791102, 50248468, 91759740, 228117737]
     },
     2: {
-        'a1': [49836103, 76370086, 128915491, 508144938],
-        'a2': [53674589, 85511395, 137605613, 405228751],
-        'a3': [81251025, 104825105, 190023761, 462479789]
+        'a1': [51500527, 81288058, 130218853, 543307838],
+        'a2': [56631678, 84612949, 115295377, 488447332],
+        'a3': [78600670, 112431400, 180044373, 486739494]
     },
     4: {
-        'a1': [106112583, 172570080, 303961445, 1485682365],
-        'a2': [134681206, 174941434, 291559501, 1375434872],
-        'a3': [144869306, 216696966, 410728150, 574356059]
+        'a1': [97026245, 165282289, 300460108, 1791324827],
+        'a2': [112666479, 163926629, 242861875, 1960114721],
+        'a3': [151197932, 210989468, 450295956, 590454561]
     },
     8: {
-        'a1': [239427519, 382379706, 595073956, 3976240956],
-        'a2': [256950712, 402947686, 633370052, 5682966757],
-        'a3': [338437201, 500327164, 896259447, 1932207687]
+        'a1': [245376743, 391260429, 769403615, 6634530146],
+        'a2': [254136113, 380456909, 687663330, 7680936616],
+        'a3': [366331813, 568779553, 1019027292, 1485509026]
     }
 }
 
-def get_cpb(thread_count, impl):
-    raw = cycles_raw[thread_count][impl]
-    cpb = []
-    for i, size in enumerate(sizes):
-        total_bytes = size * thread_count * ITERATIONS
-        cpb.append(raw[i] / total_bytes)
-    return cpb
+# --- CPU EFFICIENCY CALCULATION ---
+def calculate_cpb(cycles_list, thread_count):
+    cpb_list = []
+    for c, s in zip(cycles_list, sizes):
+        total_bytes = s * thread_count * ITERATIONS
+        cpb_list.append(c / total_bytes)
+    return cpb_list
+
+# Pre-calculate CPB for all threads
+cpb_data = {}
+for t in threads:
+    cpb_data[t] = {
+        'a1': calculate_cpb(cycles_data[t]['a1'], t),
+        'a2': calculate_cpb(cycles_data[t]['a2'], t),
+        'a3': calculate_cpb(cycles_data[t]['a3'], t)
+    }
 
 # ==========================================
 # PLOTTING UTILS
@@ -131,10 +139,10 @@ def style_plot(ax, title, xlabel, ylabel, logx=False, logy=False):
     ax.legend(fontsize=8)
 
 # ==========================================
-# GENERATE 4 IMAGES
+# GENERATE 4 IMAGES (Each with 4 Subplots)
 # ==========================================
 
-# 1. THROUGHPUT
+# 1. THROUGHPUT (4 Subplots: 1T, 2T, 4T, 8T)
 fig, axs = plt.subplots(2, 2, figsize=(12, 10))
 fig.suptitle(f'Throughput vs Message Size ({SYSTEM_CONFIG})', fontsize=14)
 for i, t in enumerate(threads):
@@ -142,11 +150,11 @@ for i, t in enumerate(threads):
     ax.plot(sizes, tp_data[t]['a1'], 'o-', label='A1 (Baseline)')
     ax.plot(sizes, tp_data[t]['a2'], 's-', label='A2 (One-Copy)')
     ax.plot(sizes, tp_data[t]['a3'], '^-', label='A3 (Zero-Copy)')
-    style_plot(ax, f'Threads: {t}', 'Message Size', 'Throughput (Gbps)', logx=True)
+    style_plot(ax, f'Threads: {t}', 'Message Size (Bytes)', 'Throughput (Gbps)', logx=True)
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.savefig('1_throughput_analysis.png')
 
-# 2. LATENCY
+# 2. LATENCY (4 Subplots: 1K, 16K, 65K, 262K)
 fig, axs = plt.subplots(2, 2, figsize=(12, 10))
 fig.suptitle(f'Latency vs Thread Count ({SYSTEM_CONFIG})', fontsize=14)
 for i, s in enumerate(sizes):
@@ -154,11 +162,11 @@ for i, s in enumerate(sizes):
     ax.plot(threads, lat_data[s]['a1'], 'o-', label='A1 (Baseline)')
     ax.plot(threads, lat_data[s]['a2'], 's-', label='A2 (One-Copy)')
     ax.plot(threads, lat_data[s]['a3'], '^-', label='A3 (Zero-Copy)')
-    style_plot(ax, f'Size: {s}', 'Threads', 'Latency (us)')
+    style_plot(ax, f'Size: {s} Bytes', 'Threads', 'Latency (us)')
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.savefig('2_latency_analysis.png')
 
-# 3. LLC MISSES
+# 3. LLC MISSES (4 Subplots: 1T, 2T, 4T, 8T)
 fig, axs = plt.subplots(2, 2, figsize=(12, 10))
 fig.suptitle(f'LLC Misses vs Message Size ({SYSTEM_CONFIG})', fontsize=14)
 for i, t in enumerate(threads):
@@ -166,23 +174,20 @@ for i, t in enumerate(threads):
     ax.plot(sizes, llc_data[t]['a1'], 'o-', label='A1 (Baseline)')
     ax.plot(sizes, llc_data[t]['a2'], 's-', label='A2 (One-Copy)')
     ax.plot(sizes, llc_data[t]['a3'], '^-', label='A3 (Zero-Copy)')
-    style_plot(ax, f'Threads: {t}', 'Message Size', 'LLC Misses', logx=True, logy=True)
+    style_plot(ax, f'Threads: {t}', 'Message Size (Bytes)', 'LLC Misses', logx=True, logy=True)
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.savefig('3_cache_misses_analysis.png')
 
-# 4. CPU EFFICIENCY
+# 4. CPU EFFICIENCY (4 Subplots: 1T, 2T, 4T, 8T)
 fig, axs = plt.subplots(2, 2, figsize=(12, 10))
 fig.suptitle(f'CPU Efficiency vs Message Size ({SYSTEM_CONFIG})', fontsize=14)
 for i, t in enumerate(threads):
     ax = axs[i//2, i%2]
-    cpb_a1 = get_cpb(t, 'a1')
-    cpb_a2 = get_cpb(t, 'a2')
-    cpb_a3 = get_cpb(t, 'a3')
-    ax.plot(sizes, cpb_a1, 'o-', label='A1 (Baseline)')
-    ax.plot(sizes, cpb_a2, 's-', label='A2 (One-Copy)')
-    ax.plot(sizes, cpb_a3, '^-', label='A3 (Zero-Copy)')
-    style_plot(ax, f'Threads: {t}', 'Message Size', 'Cycles / Byte', logx=True)
+    ax.plot(sizes, cpb_data[t]['a1'], 'o-', label='A1 (Baseline)')
+    ax.plot(sizes, cpb_data[t]['a2'], 's-', label='A2 (One-Copy)')
+    ax.plot(sizes, cpb_data[t]['a3'], '^-', label='A3 (Zero-Copy)')
+    style_plot(ax, f'Threads: {t}', 'Message Size (Bytes)', 'Cycles Per Byte', logx=True)
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.savefig('4_cpu_efficiency_analysis.png')
 
-print("All 4 Analysis Images Generated.")
+print("All 4 Analysis Images (4x4 subplots) Generated with YOUR full data.")

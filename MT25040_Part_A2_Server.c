@@ -41,7 +41,7 @@ int main(int argc , char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    if(listen(server_id,3) < 0) {
+    if(listen(server_id,32) < 0) {
         perror("Listen Failed");
         exit(EXIT_FAILURE);
     }
