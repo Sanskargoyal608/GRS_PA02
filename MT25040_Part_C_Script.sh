@@ -1,13 +1,11 @@
 #!/bin/bash
 
-# ============================================================
-# MT25040 - Part C: Automated Experiments
-# ============================================================
+
 
 # Configuration
 SIZES=(1024 16384 65536 262144) 
 THREADS=(1 2 4 8)
-# MUST match the #define ITERATIONS in MT25040_Part_A_Data.h
+
 ITERATIONS=1000                
 OUTPUT_FILE="final_results.csv"
 
@@ -91,30 +89,33 @@ run_experiment() {
     
     perf stat -p $SERVER_PID -e cycles,context-switches,cache-misses,L1-dcache-load-misses \
         -o perf_current.txt -- \
-        ip netns exec $NS_CLIENT $CLIENT_BIN $IP_SERVER $PORT $THREAD $SIZE > /dev/null
-    
-    END_TIME=$(date +%s.%N)
+        ip netns exec $NS_CLIENT $CLIENT_BIN $IP_SERVER $PORT $THREAD $SIZE > client_output.txt
 
-    # Cleanup Server
-    kill -9 $SERVER_PID 2>/dev/null
+    # 2. Extract Total Bytes
+    BYTES=$(grep "TOTAL_BYTES" client_output.txt | awk -F':' '{print $2}')
     
-    # Calculate Throughput AND Latency (Python)
-    # Returns: "throughput,latency"
+    # Handle empty result (in case of error)
+    if [ -z "$BYTES" ]; then BYTES=0; fi
+
+    # 3. Calculate Throughput/Latency with Python (Dynamic)
     METRICS=$(python3 -c "
 try:
-    runtime = $END_TIME - $START_TIME
-    if runtime < 0.0001: runtime = 0.0001
+    total_bytes = float($BYTES)
+    duration = 6.0  # We enforced 6 seconds in server
     
-    # Throughput Calc
-    bits = $ITERATIONS * 8.0 * $SIZE * $THREAD
-    gbps = (bits / runtime) / 1000000000.0
+    # Throughput (Gbps) = (Bytes * 8) / Duration / 1e9
+    gbps = (total_bytes * 8) / duration / 1e9
     
-    # Latency Calc (microseconds)
-    # Average time per message = Runtime / Total Messages
-    total_msgs = $ITERATIONS * $THREAD
-    lat_us = (runtime / total_msgs) * 1000000.0
-    
-    print(f'{gbps:.6f},{lat_us:.6f}')
+    # Latency (us) = Duration / Total_Messages * 1e6
+    # Total_Messages = Total_Bytes / Message_Size
+    msg_size = float($SIZE)
+    if total_bytes > 0:
+        total_msgs = total_bytes / msg_size
+        latency = (duration * 1e6) / total_msgs
+    else:
+        latency = 0
+        
+    print(f'{gbps:.6f},{latency:.6f}')
 except:
     print('0,0')
 ")

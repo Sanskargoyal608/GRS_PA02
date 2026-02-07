@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 
 #define PORT 8080
-// Reduced to 10000 for faster testing (Change back to 50000 later for final report)
+// Reduced to 10000 for faster testing 
 #define ITERATIONS 1000 
 
 typedef struct {

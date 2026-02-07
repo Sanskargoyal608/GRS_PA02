@@ -1,6 +1,7 @@
 #include "MT25040_Part_A_Data.h" // Updated header name
 #include <pthread.h>
 #include <sys/socket.h>
+#include <time.h>
 // #include <sys/uio.h> // writev not needed anymore
 
 // Global size variable
@@ -83,9 +84,10 @@ void *handle_client(void *socket_desc) {
     // Setup msghdr for sendmsg()
     struct msghdr socket_message = {0};
     socket_message.msg_iov = iov;
-    socket_message.msg_iovlen = 8;
-
-    for(int i = 0; i < ITERATIONS; i++) {
+    socket_message.msg_iovlen = 8; 
+    
+    time_t start = time(NULL);
+    while (time(NULL) - start < 6) { // Run for 6 seconds
         sendmsg(sock, &socket_message, 0);
     }
 

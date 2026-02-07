@@ -4,130 +4,100 @@ import numpy as np
 # ==========================================
 # CONFIGURATION
 # ==========================================
-SYSTEM_CONFIG = "System: 16 vCPU, Fixed Backlog"
-ITERATIONS = 1000
+SYSTEM_CONFIG = "System: 16 vCPU, Fixed Duration (6s)"
+DPI = 300
 
 # ==========================================
-# HARDCODED DATA (FULL DATASET FOR ALL GRAPHS)
+# RAW DATA (Directly from your latest CSV)
 # ==========================================
 sizes = [1024, 16384, 65536, 262144]
 threads = [1, 2, 4, 8]
 
 # --- THROUGHPUT (Gbps) ---
 tp_data = {
-    1: {
-        'a1': [0.19, 5.09, 18.06, 21.87],
-        'a2': [0.30, 4.88, 17.06, 35.54],
-        'a3': [0.32, 4.68, 14.37, 30.87]
-    },
-    2: {
-        'a1': [0.67, 10.22, 32.92, 35.34],
-        'a2': [0.69, 8.84, 35.08, 45.22],
-        'a3': [0.57, 8.75, 19.02, 56.81]
-    },
-    4: {
-        'a1': [1.38, 19.30, 54.13, 59.17],
-        'a2': [0.79, 18.93, 65.31, 48.56],
-        'a3': [1.16, 17.98, 46.29, 57.37]
-    },
-    8: {
-        'a1': [2.66, 22.40, 96.30, 61.22],
-        'a2': [2.47, 32.46, 104.17, 53.34],
-        'a3': [1.21, 30.28, 70.37, 54.07]
-    }
+    1: {'a1': [1.66, 14.16, 37.94, 29.60],
+        'a2': [1.51, 13.05, 35.26, 46.30],
+        'a3': [0.97, 9.26, 24.04, 36.40]},
+    2: {'a1': [3.45, 26.83, 72.58, 66.14],
+        'a2': [2.92, 24.80, 69.50, 82.05],
+        'a3': [1.88, 18.22, 46.37, 64.98]},
+    4: {'a1': [6.16, 47.38, 123.53, 90.54],
+        'a2': [5.30, 43.72, 117.98, 105.55],
+        'a3': [3.24, 31.91, 80.07, 110.27]},
+    8: {'a1': [8.72, 64.25, 152.11, 68.83],
+        'a2': [7.50, 59.94, 152.03, 55.38],
+        'a3': [4.27, 43.51, 103.05, 75.85]}
 }
 
-# --- LATENCY (us) ---
+# --- LATENCY (Raw Inter-Arrival Time from CSV) ---
 lat_data = {
-    1024: {
-        'a1': [42.02, 12.06, 5.91, 3.07],
-        'a2': [26.57, 11.83, 10.36, 3.30],
-        'a3': [24.99, 14.32, 7.05, 6.76]
-    },
-    16384: {
-        'a1': [25.74, 12.82, 6.78, 5.85],
-        'a2': [26.83, 14.82, 6.92, 4.03],
-        'a3': [27.97, 14.97, 7.28, 4.32]
-    },
-    65536: {
-        'a1': [29.02, 15.92, 9.68, 5.44],
-        'a2': [30.72, 14.94, 8.02, 5.03],
-        'a3': [36.45, 27.55, 11.32, 7.45]
-    },
-    262144: {
-        'a1': [95.84, 59.32, 35.43, 34.25],
-        'a2': [58.99, 46.37, 43.18, 39.31],
-        'a3': [67.92, 36.91, 36.55, 38.78]
-    }
+    1024: {'a1': [4.93, 2.37, 1.32, 0.93],
+           'a2': [5.41, 2.80, 1.54, 1.09],
+           'a3': [8.40, 4.33, 2.52, 1.91]},
+    16384: {'a1': [9.25, 4.88, 2.76, 2.03],
+            'a2': [10.04, 5.28, 2.99, 2.18],
+            'a3': [14.14, 7.19, 4.10, 3.01]},
+    65536: {'a1': [13.81, 7.22, 4.24, 3.44],
+            'a2': [14.86, 7.54, 4.44, 3.44],
+            'a3': [21.80, 11.30, 6.54, 5.08]},
+    262144: {'a1': [70.83, 31.70, 23.16, 30.46],
+             'a2': [45.28, 25.55, 19.86, 37.86],
+             'a3': [57.61, 32.27, 19.01, 27.64]}
 }
 
-# --- LLC MISSES (Raw Count - All Threads) ---
-llc_data = {
-    1: {
-        'a1': [82378, 386032, 970920, 2538692],
-        'a2': [117422, 377525, 980784, 3556353],
-        'a3': [142350, 391910, 1655819, 6970171]
-    },
-    2: {
-        'a1': [179421, 696834, 1924662, 5515685],
-        'a2': [197559, 715908, 1848736, 6353735],
-        'a3': [381736, 868812, 3098450, 12747157]
-    },
-    4: {
-        'a1': [361521, 1316159, 3598334, 10715723],
-        'a2': [415278, 1380425, 3648373, 11153499],
-        'a3': [782245, 1668163, 6648452, 14404180]
-    },
-    8: {
-        'a1': [878549, 2311479, 7172318, 24770389],
-        'a2': [909561, 2235728, 7503929, 23470600],
-        'a3': [2272925, 4203586, 12388609, 17327901]
-    }
+# --- L1 MISSES ---
+l1_data = {
+    1: {'a1': [2.67e8, 9.16e8, 1.80e9, 1.32e9],
+        'a2': [2.81e8, 8.57e8, 1.68e9, 2.09e9],
+        'a3': [3.09e8, 6.43e8, 1.13e9, 1.53e9]},
+    2: {'a1': [5.59e8, 1.73e9, 3.43e9, 2.96e9],
+        'a2': [5.68e8, 1.63e9, 3.30e9, 3.70e9],
+        'a3': [6.01e8, 1.27e9, 2.20e9, 2.56e9]},
+    4: {'a1': [1.06e9, 3.13e9, 5.89e9, 4.00e9],
+        'a2': [1.02e9, 2.93e9, 5.62e9, 4.69e9],
+        'a3': [1.10e9, 2.25e9, 3.86e9, 4.13e9]},
+    8: {'a1': [2.46e9, 4.90e9, 7.56e9, 3.11e9],
+        'a2': [2.33e9, 4.55e9, 7.54e9, 2.49e9],
+        'a3': [2.05e9, 3.63e9, 5.36e9, 1.73e9]}
 }
 
-# --- RAW CYCLES (For CPU Efficiency Calculation) ---
+# --- CPB CALCULATION (Formula: Cycles / Total_Bytes) ---
 cycles_data = {
-    1: {
-        'a1': [24181322, 42153700, 55665619, 200473496],
-        'a2': [27545335, 36679883, 60328528, 171972767],
-        'a3': [33791102, 50248468, 91759740, 228117737]
-    },
-    2: {
-        'a1': [51500527, 81288058, 130218853, 543307838],
-        'a2': [56631678, 84612949, 115295377, 488447332],
-        'a3': [78600670, 112431400, 180044373, 486739494]
-    },
-    4: {
-        'a1': [97026245, 165282289, 300460108, 1791324827],
-        'a2': [112666479, 163926629, 242861875, 1960114721],
-        'a3': [151197932, 210989468, 450295956, 590454561]
-    },
-    8: {
-        'a1': [245376743, 391260429, 769403615, 6634530146],
-        'a2': [254136113, 380456909, 687663330, 7680936616],
-        'a3': [366331813, 568779553, 1019027292, 1485509026]
-    }
+    1: {'a1': [2.28e10, 2.54e10, 2.50e10, 2.15e10],
+        'a2': [2.44e10, 2.46e10, 2.43e10, 2.26e10],
+        'a3': [2.33e10, 2.37e10, 2.39e10, 2.34e10]},
+    2: {'a1': [5.01e10, 4.84e10, 4.76e10, 4.17e10],
+        'a2': [4.74e10, 4.73e10, 4.66e10, 4.15e10],
+        'a3': [4.56e10, 4.66e10, 4.65e10, 4.20e10]},
+    4: {'a1': [9.13e10, 8.84e10, 8.69e10, 7.70e10],
+        'a2': [8.66e10, 8.58e10, 8.49e10, 7.23e10],
+        'a3': [8.31e10, 8.41e10, 8.41e10, 6.79e10]},
+    8: {'a1': [1.64e11, 1.60e11, 1.57e11, 1.58e11],
+        'a2': [1.56e11, 1.54e11, 1.51e11, 1.34e11],
+        'a3': [1.39e11, 1.50e11, 1.48e11, 4.88e10]}
 }
 
-# --- CPU EFFICIENCY CALCULATION ---
-def calculate_cpb(cycles_list, thread_count):
+def calculate_cpb(cycles_list, throughput_list):
     cpb_list = []
-    for c, s in zip(cycles_list, sizes):
-        total_bytes = s * thread_count * ITERATIONS
-        cpb_list.append(c / total_bytes)
+    duration = 6.0
+    for cycles, gbps in zip(cycles_list, throughput_list):
+        if gbps > 0:
+            total_bytes = (gbps * 1e9 * duration) / 8.0
+            cpb_list.append(cycles / total_bytes)
+        else:
+            cpb_list.append(0)
     return cpb_list
 
-# Pre-calculate CPB for all threads
 cpb_data = {}
 for t in threads:
     cpb_data[t] = {
-        'a1': calculate_cpb(cycles_data[t]['a1'], t),
-        'a2': calculate_cpb(cycles_data[t]['a2'], t),
-        'a3': calculate_cpb(cycles_data[t]['a3'], t)
+        'a1': calculate_cpb(cycles_data[t]['a1'], tp_data[t]['a1']),
+        'a2': calculate_cpb(cycles_data[t]['a2'], tp_data[t]['a2']),
+        'a3': calculate_cpb(cycles_data[t]['a3'], tp_data[t]['a3'])
     }
 
 # ==========================================
-# PLOTTING UTILS
+# PLOTTING FUNCTIONS
 # ==========================================
 def style_plot(ax, title, xlabel, ylabel, logx=False, logy=False):
     ax.set_title(title, fontsize=10, fontweight='bold')
@@ -138,11 +108,7 @@ def style_plot(ax, title, xlabel, ylabel, logx=False, logy=False):
     ax.grid(True, which="both", ls="--", alpha=0.5)
     ax.legend(fontsize=8)
 
-# ==========================================
-# GENERATE 4 IMAGES (Each with 4 Subplots)
-# ==========================================
-
-# 1. THROUGHPUT (4 Subplots: 1T, 2T, 4T, 8T)
+# 1. THROUGHPUT
 fig, axs = plt.subplots(2, 2, figsize=(12, 10))
 fig.suptitle(f'Throughput vs Message Size ({SYSTEM_CONFIG})', fontsize=14)
 for i, t in enumerate(threads):
@@ -152,11 +118,11 @@ for i, t in enumerate(threads):
     ax.plot(sizes, tp_data[t]['a3'], '^-', label='A3 (Zero-Copy)')
     style_plot(ax, f'Threads: {t}', 'Message Size (Bytes)', 'Throughput (Gbps)', logx=True)
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-plt.savefig('1_throughput_analysis.png')
+plt.savefig('1_throughput_analysis.png', dpi=DPI)
 
-# 2. LATENCY (4 Subplots: 1K, 16K, 65K, 262K)
+# 2. LATENCY
 fig, axs = plt.subplots(2, 2, figsize=(12, 10))
-fig.suptitle(f'Latency vs Thread Count ({SYSTEM_CONFIG})', fontsize=14)
+fig.suptitle(f'System Latency (Inter-arrival) vs Thread Count', fontsize=14)
 for i, s in enumerate(sizes):
     ax = axs[i//2, i%2]
     ax.plot(threads, lat_data[s]['a1'], 'o-', label='A1 (Baseline)')
@@ -164,30 +130,30 @@ for i, s in enumerate(sizes):
     ax.plot(threads, lat_data[s]['a3'], '^-', label='A3 (Zero-Copy)')
     style_plot(ax, f'Size: {s} Bytes', 'Threads', 'Latency (us)')
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-plt.savefig('2_latency_analysis.png')
+plt.savefig('2_latency_analysis.png', dpi=DPI)
 
-# 3. LLC MISSES (4 Subplots: 1T, 2T, 4T, 8T)
+# 3. L1 MISSES
 fig, axs = plt.subplots(2, 2, figsize=(12, 10))
-fig.suptitle(f'LLC Misses vs Message Size ({SYSTEM_CONFIG})', fontsize=14)
+fig.suptitle(f'L1 Cache Misses vs Message Size', fontsize=14)
 for i, t in enumerate(threads):
     ax = axs[i//2, i%2]
-    ax.plot(sizes, llc_data[t]['a1'], 'o-', label='A1 (Baseline)')
-    ax.plot(sizes, llc_data[t]['a2'], 's-', label='A2 (One-Copy)')
-    ax.plot(sizes, llc_data[t]['a3'], '^-', label='A3 (Zero-Copy)')
-    style_plot(ax, f'Threads: {t}', 'Message Size (Bytes)', 'LLC Misses', logx=True, logy=True)
+    ax.plot(sizes, l1_data[t]['a1'], 'o-', label='A1 (Baseline)')
+    ax.plot(sizes, l1_data[t]['a2'], 's-', label='A2 (One-Copy)')
+    ax.plot(sizes, l1_data[t]['a3'], '^-', label='A3 (Zero-Copy)')
+    style_plot(ax, f'Threads: {t}', 'Message Size (Bytes)', 'L1 Misses', logx=True, logy=True)
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-plt.savefig('3_cache_misses_analysis.png')
+plt.savefig('3_cache_misses_analysis.png', dpi=DPI)
 
-# 4. CPU EFFICIENCY (4 Subplots: 1T, 2T, 4T, 8T)
+# 4. CPU CYCLES PER BYTE
 fig, axs = plt.subplots(2, 2, figsize=(12, 10))
-fig.suptitle(f'CPU Efficiency vs Message Size ({SYSTEM_CONFIG})', fontsize=14)
+fig.suptitle(f'CPU Cycles per Byte Transferred', fontsize=14)
 for i, t in enumerate(threads):
     ax = axs[i//2, i%2]
     ax.plot(sizes, cpb_data[t]['a1'], 'o-', label='A1 (Baseline)')
     ax.plot(sizes, cpb_data[t]['a2'], 's-', label='A2 (One-Copy)')
     ax.plot(sizes, cpb_data[t]['a3'], '^-', label='A3 (Zero-Copy)')
-    style_plot(ax, f'Threads: {t}', 'Message Size (Bytes)', 'Cycles Per Byte', logx=True)
+    style_plot(ax, f'Threads: {t}', 'Message Size (Bytes)', 'CPU Cycles / Byte', logx=True)
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-plt.savefig('4_cpu_efficiency_analysis.png')
+plt.savefig('4_cpu_cycles_per_byte.png', dpi=DPI)
 
-print("All 4 Analysis Images (4x4 subplots) Generated with YOUR full data.")
+print("Success: Generated plain plots based on raw CSV.")

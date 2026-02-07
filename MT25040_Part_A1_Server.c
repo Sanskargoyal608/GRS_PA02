@@ -1,5 +1,6 @@
 #include "MT25040_Part_A_Data.h"
 #include <pthread.h>
+#include <time.h>
 
 // Global to store the size passed from the script
 int g_message_size = 1024; 
@@ -47,7 +48,7 @@ int main(int argc , char *argv[]) {
     printf("server listening on %d\n",PORT);
     fflush(stdout);
 
-    // 2. FIXED COMPILER WARNING (Added extra parentheses)
+    
     while((new_socket = accept(server_id, (struct sockaddr *)&address, (socklen_t*)&addrlen))) {
         // printf("connection accepted\n"); // Commented out to reduce spam in CSV mode
         // fflush(stdout);
@@ -84,13 +85,20 @@ void *handle_client(void *socket_desc) {
     int byte_p_f = message_size/8;
     int offset = 0;
 
+    
+
     for(int i = 0; i < 8 ; i++) {
         memcpy(flat_buffer+offset,msg.text[i],byte_p_f);
         offset += byte_p_f;
     }
 
-    for(int i = 0; i < ITERATIONS; i++) {
-        send(sock,flat_buffer, message_size,0);
+    // for(int i = 0; i < ITERATIONS; i++) {
+    //     send(sock,flat_buffer, message_size,0);
+    // }
+
+    time_t start = time(NULL);
+    while (time(NULL) - start < 6) { // Run for 6 seconds
+        send(sock, flat_buffer, message_size, 0);
     }
 
     free(flat_buffer);

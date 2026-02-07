@@ -94,14 +94,40 @@ void *handle_client(void *socket_desc) {
     msg_header.msg_iov = iov;
     msg_header.msg_iovlen = 8;
 
-    for(int i = 0; i < ITERATIONS; i++) {
-        ssize_t ret = sendmsg(sock, &msg_header, MSG_ZEROCOPY);
-        if (ret < 0 && errno == ENOBUFS) {
-            // Retry if buffer is full
-            i--; 
-            usleep(10);
+    time_t start = time(NULL);
+    unsigned long packets_sent = 0;
+
+    // Buffer to read the error queue notifications
+    char err_buf[512];
+    struct msghdr msg_err = {0}; 
+    struct iovec iov_err = {.iov_base = err_buf, .iov_len = sizeof(err_buf)};
+    char ctrl_buf[512];
+    msg_err.msg_iov = &iov_err;
+    msg_err.msg_iovlen = 1;
+    msg_err.msg_control = ctrl_buf;
+    msg_err.msg_controllen = sizeof(ctrl_buf);
+
+    while (time(NULL) - start < 6) { // Run for 6 seconds
+        // 1. Send Data
+        if (sendmsg(sock, &msg_header, MSG_ZEROCOPY) <= 0) {
+            if (errno == ENOBUFS) {
+                // Buffer full: Drain error queue and try again
+                while (recvmsg(sock, &msg_err, MSG_ERRQUEUE | MSG_DONTWAIT) > 0);
+                continue;
+            }
+            break; // Stop on other errors
+        }
+        packets_sent++;
+
+        // 2. Drain Error Queue periodically (e.g., every 32 packets)
+        // This keeps the kernel buffer from filling up
+        if (packets_sent % 32 == 0) {
+             while (recvmsg(sock, &msg_err, MSG_ERRQUEUE | MSG_DONTWAIT) > 0);
         }
     }
+
+    // Final drain before closing
+    while (recvmsg(sock, &msg_err, MSG_ERRQUEUE | MSG_DONTWAIT) > 0);
 
     free_msg(&msg);
     close(sock);

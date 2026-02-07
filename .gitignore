@@ -1,5 +1,5 @@
 cat <<EOF > .gitignore
-# Ignore Binaries (CRITICAL for marks)
+# Ignore Binaries 
 server_a1
 server_a2
 server_a3
